@@ -23,6 +23,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         var shouldPerformAdditionalDelegateHandling = true
         
+        /// 快捷方式
         if let shortcutItem = launchOptions?[UIApplicationLaunchOptionsKey.shortcutItem] as? UIApplicationShortcutItem {
             launchedShortcutItem = shortcutItem
             shouldPerformAdditionalDelegateHandling = false
@@ -67,6 +68,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Called as part of the transition from the background to the active state; here you can undo many of the changes made on entering the background.
     }
 
+    
+    /// 根据经纬度判定是否日落日出等;刷新UI；执行shortcut
+    ///
+    /// - Parameter application: app
     func applicationDidBecomeActive(_ application: UIApplication) {
         let locationManager = CLLocationManager()
         if UserDefaultsManagement.nightModeAuto,
@@ -98,6 +103,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         launchedShortcutItem = nil
     }
     
+    /// 未启动完成执行：icloud文件路径创建
+    ///
+    /// - Parameters:
+    ///   - application: <#application description#>
+    ///   - launchOptions: <#launchOptions description#>
+    /// - Returns: <#return value description#>
     func application(_ application: UIApplication, willFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey : Any]? = nil) -> Bool {
 
         UIApplication.shared.statusBarStyle = .lightContent
@@ -116,14 +127,24 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return true
     }
     
+    /// 执行shortcut
+    ///
+    /// - Parameters:
+    ///   - application: app
+    ///   - shortcutItem: shortcutItem description
+    ///   - completionHandler: completionHandler descriptio
     func application(_ application: UIApplication, performActionFor shortcutItem: UIApplicationShortcutItem, completionHandler: @escaping (Bool) -> Void) {
         let handledShortCutItem = handleShortCutItem(shortcutItem)
         completionHandler(handledShortCutItem)
     }
 
-    // MARK: Static Properties
+    // MARK: 静态属性
     static let applicationShortcutUserInfoIconKey = "applicationShortcutUserInfoIconKey"
     
+    /// 执行具体的shortcut
+    ///
+    /// - Parameter shortcutItem: item
+    /// - Returns: return value description
     func handleShortCutItem(_ shortcutItem: UIApplicationShortcutItem) -> Bool {
         var handled = false
         guard ShortcutIdentifier(fullType: shortcutItem.type) != nil else { return false }
