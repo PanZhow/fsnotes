@@ -10,6 +10,7 @@ import UIKit
 import NightNight
 import Solar
 
+/// 文章列表：含左侧列表
 class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizerDelegate {
 
     @IBOutlet weak var preHeaderView: UIView!

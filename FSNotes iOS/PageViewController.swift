@@ -12,6 +12,8 @@ import NightNight
 /// MARK: 第二界面
 class PageViewController: UIPageViewController, UIPageViewControllerDelegate, UIPageViewControllerDataSource, UIScrollViewDelegate {
 
+    
+    /// 私有属性并赋初始值
     private var startOffset = CGFloat(0)
     private var swipeEnded = false
 
@@ -19,6 +21,8 @@ class PageViewController: UIPageViewController, UIPageViewControllerDelegate, UI
     public var editorViewController: EditorViewController? = nil
     public var previewViewController: PreviewViewController? = nil
 
+    
+    /// 设置first view展示
     override func viewDidLoad() {
         self.dataSource = self
         self.delegate = self
@@ -38,6 +42,10 @@ class PageViewController: UIPageViewController, UIPageViewControllerDelegate, UI
         }
     }
     
+    /// 自storyboard获取ctrl，并以之返回其新建的Navi（root为返回的ctrl）
+    ///
+    /// - Parameter viewController: name
+    /// - Returns: ctrl
     func newVc(viewController: String) -> UIViewController {
         let vc = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: viewController)
 
@@ -55,6 +63,7 @@ class PageViewController: UIPageViewController, UIPageViewControllerDelegate, UI
         return vc
     }
     
+    /// 懒加载属性，返回序列分明的3歌ctrl
     lazy var orderedViewControllers: [UIViewController] = {
         return [
             self.newVc(viewController: "listViewController"),
@@ -108,6 +117,8 @@ class PageViewController: UIPageViewController, UIPageViewControllerDelegate, UI
         return orderedViewControllers[nextIndex]
     }
 
+    
+    /// 是底层scrollview使能失效
     func disableSwipe() {
         for view in self.view.subviews {
             if let subView = view as? UIScrollView {
@@ -115,7 +126,7 @@ class PageViewController: UIPageViewController, UIPageViewControllerDelegate, UI
             }
         }
     }
-    
+    /// 是底层scrollview使能生效
     func enableSwipe() {
         for view in self.view.subviews {
             if let subView = view as? UIScrollView {
@@ -146,10 +157,12 @@ class PageViewController: UIPageViewController, UIPageViewControllerDelegate, UI
         }
     }
     
+    /// 转向列表界面
     func switchToList() {
         self.setViewControllers([self.orderedViewControllers[0]], direction: .reverse, animated: true)
     }
     
+    /// 切换至编辑界面
     func switchToEditor() {
         self.setViewControllers([self.orderedViewControllers[1]], direction: .forward, animated: true)
     }
@@ -184,6 +197,8 @@ class PageViewController: UIPageViewController, UIPageViewControllerDelegate, UI
         self.fadeOutController()
     }
 
+    
+    /// 显示隐藏动画
     private func fadeOutController() {
         DispatchQueue.main.async {
             UIView.beginAnimations("pager", context: nil)
