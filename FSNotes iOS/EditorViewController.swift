@@ -152,6 +152,12 @@ class EditorViewController: UIViewController, UITextViewDelegate {
         self.navigationItem.title = text
     }
 
+    
+    /// 根据note类型，渲染content
+    ///
+    /// - Parameters:
+    ///   - note: <#note description#>
+    ///   - preview: <#preview description#>
     public func fill(note: Note, preview: Bool = false) {
         self.note = note
         EditTextView.note = note

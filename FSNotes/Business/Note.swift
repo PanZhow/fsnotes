@@ -793,6 +793,7 @@ public class Note: NSObject  {
         _ = saveTags(tagNames)
     }
     
+    /// 加载标签
     public func loadTags() {
         #if os(OSX)
             let tags = try? url.resourceValues(forKeys: [.tagNamesKey])

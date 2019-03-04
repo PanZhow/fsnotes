@@ -22,14 +22,24 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
     @IBOutlet weak var searchCancel: UIButton!
     @IBOutlet weak var headerView: UIView!
     @IBOutlet weak var searchView: UIView!
+    
+    /// 笔记列表
     @IBOutlet var notesTable: NotesTableView!
+    
+    /// 侧滑部分的列表
     @IBOutlet weak var sidebarTableView: SidebarTableView!
+    
+    /// 约束，动画更改
     @IBOutlet weak var sidebarWidthConstraint: NSLayoutConstraint!
     @IBOutlet weak var noteTableViewLeadingConstraint: NSLayoutConstraint!
 
     public var indicator: UIActivityIndicatorView?
 
+    
+    /// 存储用
     public var storage: Storage?
+    
+    /// icloud
     public var cloudDriveManager: CloudDriveManager?
 
     private let searchQueue = OperationQueue()
@@ -41,6 +51,8 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
     public var is3DTouchShortcut = false
     private var isActiveTableUpdating = false
 
+    
+    /// UI渲染、
     override func viewDidLoad() {
         self.searchButton.setImage(UIImage(named: "search_white"), for: .normal)
         self.settingsButton.setImage(UIImage(named: "more_white"), for: .normal)
@@ -58,6 +70,7 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
         self.currentFolder.addGestureRecognizer(UITapGestureRecognizer(target: self.notesTable, action: #selector(self.notesTable.toggleSelectAll)))
 
         self.searchCancel.mixedTintColor = Colors.buttonText
+        /// 键盘a外观模式更改
         search.keyboardAppearance = NightNight.theme == .night ? .dark : .default
 
         view.mixedBackgroundColor = MixedColor(normal: 0xfafafa, night: 0x47444e)
@@ -71,6 +84,7 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
         search.delegate = self
         search.autocapitalizationType = .none
 
+        ///notelist列表始终置于增加按钮之下，并计算 cell 高度
         notesTable.viewDelegate = self
         notesTable.dataSource = notesTable
         notesTable.delegate = notesTable
@@ -78,9 +92,10 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
         notesTable.rowHeight = UITableViewAutomaticDimension
         notesTable.estimatedRowHeight = 160
 
+        
+        /// 下拉刷新控件添加
         let refreshControl = UIRefreshControl()
         refreshControl.addTarget(self, action: #selector(togglseSearch), for: .valueChanged)
-
         notesTable.refreshControl = refreshControl
 
         sidebarTableView.dataSource = sidebarTableView
@@ -91,8 +106,9 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
         self.sidebarTableView.isUserInteractionEnabled = (UserDefaultsManagement.sidebarSize > 0)
 
         UserDefaultsManagement.fontSize = 17
+        
+        /// 初始化保存对象
         self.storage = Storage.sharedInstance()
-
         guard let storage = self.storage else { return }
 
         if storage.noteList.count == 0 {
@@ -103,10 +119,10 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
 
             storage.loadDocuments() {
                 DispatchQueue.main.async {
-                    self.reloadSidebar()
+                    self.reloadSidebar()//a刷新sidebar
                 }
             }
-
+            ///渲染刷新UI，并启动动画
             self.indicator = UIActivityIndicatorView(activityIndicatorStyle: UIActivityIndicatorViewStyle.whiteLarge)
             self.configureIndicator(indicator: self.indicator!, view: self.view)
 
@@ -114,7 +130,7 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
                 self.initTableData()
             }
         }
-
+        ///刷新sidebar(无数据时)
         self.sidebarTableView.sidebar = Sidebar()
         self.sidebarTableView.reloadData()
         self.maxSidebarWidth = self.calculateLabelMaxWidth()
@@ -125,6 +141,7 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
 
         pageController.disableSwipe()
 
+        ///监听icloud返回
         keyValueWatcher()
 
         NotificationCenter.default.addObserver(self, selector: #selector(preferredContentSizeChanged), name: NSNotification.Name.UIContentSizeCategoryDidChange, object: nil)
@@ -147,6 +164,10 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
         NotificationCenter.default.addObserver(self, selector: #selector(didChangeScreenBrightness), name: NSNotification.Name.UIScreenBrightnessDidChange, object: nil)
     }
 
+    
+    /// reloadside列表
+    ///
+    /// - Parameter project: pro
     public func reloadSidebar(select project: Project? = nil) {
         DispatchQueue.main.async {
             self.sidebarTableView.sidebar = Sidebar()
@@ -161,6 +182,11 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
         }
     }
 
+    
+    /// 手势侧滑使能
+    ///
+    /// - Parameter gestureRecognizer: <#gestureRecognizer description#>
+    /// - Returns: <#return value description#>
     func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
         if let recognizer = gestureRecognizer as? UIPanGestureRecognizer {
             if recognizer.translation(in: self.view).x > 0 || sidebarTableView.frame.width != 0 {
@@ -170,14 +196,26 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
         return false
     }
 
+    
+    /// 展示搜索
+    ///
+    /// - Parameter sender: <#sender description#>
     @IBAction func openSearchView(_ sender: Any) {
         self.toggleSearchView()
     }
 
+    
+    /// 隐藏之
+    ///
+    /// - Parameter sender: <#sender description#>
     @IBAction func hideSearchView(_ sender: Any) {
         self.toggleSearchView()
     }
 
+    
+    /// 是否多选文章条目执行操作
+    ///
+    /// - Parameter sender: <#sender description#>
     @IBAction func bulkEditing(_ sender: Any) {
         if notesTable.isEditing {
             self.settingsButton.setImage(UIImage(named: "more_white.png"), for: .normal)
@@ -204,6 +242,8 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
         }
     }
 
+    
+    /// 开启设置
     public func openSettings() {
         let storyBoard: UIStoryboard = UIStoryboard(name: "Main", bundle:nil)
         let sourceSelectorTableViewController = storyBoard.instantiateViewController(withIdentifier: "settingsViewController") as! SettingsViewController
@@ -212,7 +252,8 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
         self.present(navigationController, animated: true, completion: nil)
     }
 
-
+    
+    /// 监听icloud
     func keyValueWatcher() {
         let keyStore = NSUbiquitousKeyValueStore()
         keyStore.synchronize()
@@ -222,7 +263,10 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
                                                name: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
                                                object: keyStore)
     }
-
+    
+    /// cicloud变更刷新
+    ///
+    /// - Parameter notification: <#notification description#>
     @objc func ubiquitousKeyValueStoreDidChange(notification: NSNotification) {
         if let keys = notification.userInfo?[NSUbiquitousKeyValueStoreChangedKeysKey] as? [String] {
             for key in keys {
@@ -237,6 +281,10 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
         }
     }
 
+    
+    /// 启动搜索功能
+    ///
+    /// - Parameter refreshControl: <#refreshControl description#>
     @objc func togglseSearch(refreshControl: UIRefreshControl) {
         self.toggleSearchView()
         refreshControl.endRefreshing()
@@ -255,6 +303,10 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
         }
     }
 
+    
+    /// edit ctrl 获取
+    ///
+    /// - Returns: <#return value description#>
     private func getEVC() -> EditorViewController? {
         if let pageController = UIApplication.shared.windows[0].rootViewController as? PageViewController,
             let viewController = pageController.orderedViewControllers[1] as? UINavigationController,
@@ -265,6 +317,12 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
         return nil
     }
 
+    
+    /// 转圈UI渲染
+    ///
+    /// - Parameters:
+    ///   - indicator: <#indicator description#>
+    ///   - view: <#view description#>
     public func configureIndicator(indicator: UIActivityIndicatorView, view: UIView) {
         indicator.frame = CGRect(x: 0.0, y: 0.0, width: 50.0, height: 50.0)
         indicator.center = view.center
@@ -277,6 +335,10 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
         startAnimation(indicator: indicator)
     }
 
+    
+    /// 开启转圈动画并置于views前端
+    ///
+    /// - Parameter indicator: <#indicator description#>
     public func startAnimation(indicator: UIActivityIndicatorView?) {
         DispatchQueue.main.async {
             indicator?.startAnimating()
@@ -284,6 +346,10 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
         }
     }
 
+    
+    /// 关闭转圈动画并设置层次问题
+    ///
+    /// - Parameter indicator: <#indicator description#>
     public func stopAnimation(indicator: UIActivityIndicatorView?) {
         DispatchQueue.main.async {
             indicator?.stopAnimating()
@@ -291,6 +357,8 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
         }
     }
 
+    
+    /// 更新列表回调后的操作
     public func initTableData() {
         guard let storage = self.storage else { return }
 
@@ -312,6 +380,12 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
 
     private var accessTime = DispatchTime.now()
 
+    
+    /// 更新table
+    ///
+    /// - Parameters:
+    ///   - search: <#search description#>
+    ///   - completion: <#completion description#>
     public func updateTable(search: Bool = false, completion: @escaping () -> Void) {
         self.isActiveTableUpdating = true
         self.searchQueue.cancelAllOperations()
@@ -404,6 +478,8 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
         self.searchQueue.addOperation(operation)
     }
     
+    
+    /// 更新条目个数
     public func updateNotesCounter() {
         DispatchQueue.main.async {
             self.folderCapacity.text = String(self.notesTable.notes.count)
@@ -434,6 +510,13 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
         return false
     }
 
+    
+    /// 搜索文本与note名字或内容某段匹配
+    ///
+    /// - Parameters:
+    ///   - note: 文本
+    ///   - terms: 内容
+    /// - Returns: 是否匹配
     private func isMatched(note: Note, terms: [Substring]) -> Bool {
         for term in terms {
             if note.name.range(of: term, options: .caseInsensitive, range: nil, locale: nil) != nil || note.content.string.range(of: term, options: .caseInsensitive, range: nil, locale: nil) != nil {
@@ -450,6 +533,10 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
         updateTable(search: true, completion: {})
     }
 
+    
+    /// 搜索点击之后的行为：含有某文章，则返回；否则新建之
+    ///
+    /// - Parameter searchBar: <#searchBar description#>
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         guard let name = searchBar.text, name.count > 0 else {
             searchBar.endEditing(true)
@@ -475,6 +562,8 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
 
     private var addButton: UIButton?
 
+    
+    /// 添加按钮是否存在，若不存在，则新建。始终置于屏幕最前端：button.layer.zPosition = 101
     func loadPlusButton() {
         if let button = getButton() {
             let width = self.view.frame.width
@@ -493,7 +582,10 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
         button.layer.zPosition = 101
         self.view.addSubview(button)
     }
-
+    
+    /// 添加 btn是否存在。存在测返回，否则返回nil
+    ///
+    /// - Returns: btn
     private func getButton() -> UIButton? {
         for sub in self.view.subviews {
 
@@ -505,6 +597,8 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
         return nil
     }
 
+    
+    /// 创建新文章
     @objc func newButtonAction() {
         createNote(content: nil)
     }
@@ -513,6 +607,8 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
         var currentProject: Project
         var tag: String?
 
+        
+        /// 属于哪个项目组（默认第一个）
         if let project = self.storage?.getProjects().first {
             currentProject = project
         } else {
@@ -539,6 +635,7 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
             note.content = NSMutableAttributedString(string: content)
         }
 
+        ///写入、粘贴板、icloud
         note.write()
 
         if pasteboard != nil {
@@ -564,6 +661,10 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
         }
     }
 
+    
+    /// 保存信息、图片自粘贴板
+    ///
+    /// - Parameter note: <#note description#>
     public func savePasteboard(note: Note) {
         let pboard = UIPasteboard.general
         let pasteboardString: String? = pboard.string
@@ -583,16 +684,22 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
         note.save()
     }
 
+    
+    /// content变更渲染
     @objc func preferredContentSizeChanged() {
         view.setNeedsLayout()
         view.layoutIfNeeded()
     }
 
+    
+    /// 翻转屏幕事件
     @objc func rotated() {
         viewWillAppear(false)
         loadPlusButton()
     }
 
+    
+    /// 黑夜模式变更通知
     @objc func didChangeScreenBrightness() {
         guard UserDefaultsManagement.nightModeType == .brightness else {
             return
@@ -664,6 +771,10 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
     var sidebarWidth: CGFloat = 0
     var width: CGFloat = 0
 
+    
+    /// 侧滑效果实现
+    ///
+    /// - Parameter swipe: <#swipe description#>
     @objc func handleSidebarSwipe(_ swipe: UIPanGestureRecognizer) {
         let windowWidth = self.view.frame.width
         let translation = swipe.translation(in: notesTable)
@@ -741,6 +852,10 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
         loadPlusButton()
     }
 
+    
+    /// 更新展示的具体文章内容
+    ///
+    /// - Parameter note: <#note description#>
     public func refreshTextStorage(note: Note) {
         DispatchQueue.main.async {
             guard let pageController = UIApplication.shared.windows[0].rootViewController as? PageViewController,
@@ -753,6 +868,9 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
         }
     }
 
+    /// 根据cell内容计算sidebar宽度
+    ///
+    /// - Returns: <#return value description#>
     private func calculateLabelMaxWidth() -> CGFloat {
         var width = CGFloat(85)
 
@@ -778,6 +896,7 @@ class ViewController: UIViewController, UISearchBarDelegate, UIGestureRecognizer
     }
 }
 
+// MARK: - 模态效果delegate
 extension ViewController : UIPopoverPresentationControllerDelegate {
     func adaptivePresentationStyle(for controller: UIPresentationController, traitCollection: UITraitCollection) -> UIModalPresentationStyle {
         return .none

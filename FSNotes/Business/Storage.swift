@@ -15,6 +15,8 @@ import Cocoa
 import UIKit
 #endif
 
+
+/// 存储对象
 class Storage {
     static var instance: Storage? = nil
     
@@ -224,6 +226,10 @@ class Storage {
         return storage
     }
 
+    
+    /// 加载项目文件
+    ///
+    /// - Parameter withTrash: <#withTrash description#>
     public func loadProjects(withTrash: Bool = true) {
         noteList.removeAll()
 
@@ -236,6 +242,12 @@ class Storage {
         }
     }
 
+    
+    /// 加载文件列表
+    ///
+    /// - Parameters:
+    ///   - tryCount: count
+    ///   - completion: handler
     func loadDocuments(tryCount: Int = 0, completion: @escaping () -> Void) {
         loadProjects()
         
@@ -365,6 +377,12 @@ class Storage {
         return note.isPinned && !next.isPinned
     }
 
+    
+    /// 加载标签相关信息
+    ///
+    /// - Parameters:
+    ///   - item: item
+    ///   - shouldScanCache: cache
     func loadLabel(_ item: Project, shouldScanCache: Bool = false) {
         let documents = readDirectory(item.url)
 
@@ -475,6 +493,9 @@ class Storage {
         return UTTypeConformsTo(typeIdentifier as CFString, kUTTypeText)
     }
     
+    /// 添加新文章至storage，后续操作？
+    ///
+    /// - Parameter note: note
     func add(_ note: Note) {
         if !noteList.contains(where: { $0.name == note.name && $0.project == note.project }) {
            noteList.append(note)
@@ -752,6 +773,8 @@ class Storage {
             }
     }
     
+    
+    /// 将项目数据、图片数据同步至icloud(双向)
     public func initiateCloudDriveSync() {
         for project in projects {
             self.syncDirectory(url: project.url)
@@ -762,6 +785,10 @@ class Storage {
         }
     }
     
+    
+    /// 同步资源至icloud
+    ///
+    /// - Parameter url: url
     public func syncDirectory(url: URL) {
         do {
             let directoryFiles =
@@ -853,6 +880,10 @@ class Storage {
         #endif
     }
 
+    
+    /// icloud相关
+    ///
+    /// - Returns: <#return value description#>
     public func restoreCloudPins() -> (removed: [Note]?, added: [Note]?) {
         var added = [Note]()
         var removed = [Note]()

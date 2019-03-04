@@ -203,6 +203,10 @@ class SidebarTableView: UITableView,
         }
     }
 
+    
+    /// 获取当前选择的item
+    ///
+    /// - Returns: item
     public func getSidebarItem() -> SidebarItem? {
         guard let indexPath = self.indexPathForSelectedRow, let sidebar = self.sidebar else { return nil }
 

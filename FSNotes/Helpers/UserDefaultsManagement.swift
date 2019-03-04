@@ -8,12 +8,15 @@
 
 import Foundation
 
+
 #if os(OSX)
     import Cocoa
 #else
     import UIKit
 #endif
 
+
+/// 全局常量等存放文件
 public class UserDefaultsManagement {
     
 #if os(OSX)
@@ -91,6 +94,7 @@ public class UserDefaultsManagement {
         }
     }
     
+    /// 静态计算属性： 获取字体大小
     static var fontSize: Int {
         get {
             if let returnFontSize = UserDefaults.standard.object(forKey: Constants.FontSizeKey) {

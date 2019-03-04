@@ -8,6 +8,8 @@
 
 import NightNight
 
+
+/// 色值返回：根据是否夜间模式返回不同的色值
 class Colors {
     public static let Header = MixedColor(normal: 0x25486C, night: 0x47444e)
 
